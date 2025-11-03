@@ -196,7 +196,7 @@ This project demonstrates understanding of:
 
 ## 👤 Author
 
-**Your Name**  
+**Pallavi**  
 Operating Systems Course Project  
 Date: 2024
 
