@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus OS Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .card h2 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+        }
+        
+        .timer-display {
+            font-size: 4em;
+            font-weight: bold;
+            color: #667eea;
+            text-align: center;
+            margin: 25px 0;
+            font-family: monospace;
+        }
+        
+        .status-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 1.1em;
+            margin: 15px auto;
+            background: #e6f7ff;
+            color: #0050b3;
+            width: fit-content;
+        }
+        
+        .status-badge.active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-indicator {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #cbd5e0;
+        }
+        
+        .status-indicator.active {
+            background: #48bb78;
+            box-shadow: 0 0 15px #48bb78;
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .input-group label {
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .input-group input {
+            padding: 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1.1em;
+        }
+        
+        .btn {
+            padding: 16px 32px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            color: white;
+        }
+        
+        .btn-danger:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #4299e1;
+            color: white;
+            padding: 10px 20px;
+            font-size: 0.95em;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            color: white;
+        }
+        
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .process-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .filter-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .process-table-wrapper {
+            overflow: auto;
+            max-height: 500px;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
+            padding: 14px 12px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        tr:hover {
+            background: #f7fafc;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        
+        .badge-blocked {
+            background: #fed7d7;
+            color: #c53030;
+        }
+        
+        .badge-allowed {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 FOCUS OS</h1>
+            <p class="subtitle">Operating System-Level Distraction Management</p>
+        </header>
+        
+        <div class="dashboard-grid">
+            <div class="card">
+                <h2>⚡ Control Panel</h2>
+                
+                <div class="status-badge" id="statusBadge">
+                    <span class="status-indicator" id="statusIndicator"></span>
+                    <span id="statusText">Ready to Focus</span>
+                </div>
+                
+                <div class="timer-display" id="timerDisplay">00:00</div>
+                
+                <div class="controls">
+                    <div class="input-group">
+                        <label for="duration">Focus Duration (minutes)</label>
+                        <input type="number" id="duration" value="2" min="1" max="240">
+                    </div>
+                    
+                    <button class="btn btn-primary" id="startBtn" onclick="startFocus()">
+                        🚀 Start Focus Mode
+                    </button>
+                    <button class="btn btn-danger" id="stopBtn" onclick="stopFocus()" disabled>
+                        🛑 Stop Focus Mode
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>📊 Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-value" id="totalSessions">0</span>
+                        <span class="stat-label">Sessions</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value" id="totalMinutes">0</span>
+                        <span class="stat-label">Minutes</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value" id="blockedCount">0</span>
+                        <span class="stat-label">Blocked</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>🖥️ Process Monitor</h2>
+            
+            <div class="process-controls">
+                <div class="filter-group">
+                    <button class="filter-btn active" onclick="filterProcesses('all')">All</button>
+                    <button class="filter-btn" onclick="filterProcesses('blocked')">Blocked Only</button>
+                    <button class="filter-btn" onclick="filterProcesses('allowed')">Allowed Only</button>
+                </div>
+                <button class="btn btn-secondary" onclick="loadProcesses()">🔄 Refresh</button>
+            </div>
+            
+            <div class="process-table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>PID</th>
+                            <th>Process Name</th>
+                            <th>CPU %</th>
+                            <th>Memory %</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="processTable">
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 40px;">
+                                Loading processes...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let focusActive = false;
+let timerInterval = null;
+let currentFilter = 'all';
+let allProcesses = [];
+
+window.onload = function() {
+    loadProcesses();
+    loadStats();
+    setInterval(loadProcesses, 10000);
+    setInterval(checkFocusStatus, 2000);
+};
+
+async function startFocus() {
+    const duration = parseInt(document.getElementById('duration').value);
+    
+    if (duration < 1 || duration > 240) {
+        alert('Duration must be between 1 and 240 minutes');
+        return;
+    }
+    
+    // Start UI updates immediately
+    focusActive = true;
+    updateUI();
+    startTimer(duration);
+    
+    try {
+        const response = await fetch('/api/focus/start', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({duration: duration})
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            focusActive = false;
+            stopTimer();
+            updateUI();
+            alert(data.message || 'Failed to start focus mode');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        focusActive = false;
+        stopTimer();
+        updateUI();
+        alert('Failed to start. Try running as Administrator.');
+    }
+}
+
+async function stopFocus() {
+    try {
+        const response = await fetch('/api/focus/stop', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'}
+        });
+        
+        if (response.ok) {
+            focusActive = false;
+            stopTimer();
+            updateUI();
+            loadStats();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+function startTimer(duration) {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+    }
+    
+    let remaining = duration * 60;
+    const endTime = Date.now() + (remaining * 1000);
+    
+    updateTimerDisplay(remaining);
+    
+    timerInterval = setInterval(() => {
+        remaining = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
+        updateTimerDisplay(remaining);
+        
+        if (remaining <= 0) {
+            stopTimer();
+            focusActive = false;
+            updateUI();
+            loadStats();
+        }
+    }, 100);
+}
+
+function updateTimerDisplay(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    document.getElementById('timerDisplay').textContent = 
+        `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+function stopTimer() {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+    document.getElementById('timerDisplay').textContent = '00:00';
+}
+
+function updateUI() {
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const statusBadge = document.getElementById('statusBadge');
+    const statusIndicator = document.getElementById('statusIndicator');
+    const statusText = document.getElementById('statusText');
+    
+    if (focusActive) {
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        statusBadge.classList.add('active');
+        statusIndicator.classList.add('active');
+        statusText.textContent = 'Focus Mode Active';
+    } else {
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        statusBadge.classList.remove('active');
+        statusIndicator.classList.remove('active');
+        statusText.textContent = 'Ready to Focus';
+    }
+}
+
+async function checkFocusStatus() {
+    try {
+        const response = await fetch('/api/focus/status');
+        const data = await response.json();
+        
+        if (data.active !== focusActive && !focusActive) {
+            focusActive = data.active;
+            updateUI();
+        }
+    } catch (error) {
+        // Silently fail
+    }
+}
+
+async function loadProcesses() {
+    try {
+        const response = await fetch('/api/processes');
+        allProcesses = await response.json();
+        displayProcesses();
+    } catch (error) {
+        console.error('Error loading processes:', error);
+        document.getElementById('processTable').innerHTML = 
+            '<tr><td colspan="5" style="text-align: center; color: red;">Error loading processes</td></tr>';
+    }
+}
+
+function displayProcesses() {
+    let processes = allProcesses;
+    
+    if (currentFilter === 'blocked') {
+        processes = processes.filter(p => p.blacklisted);
+    } else if (currentFilter === 'allowed') {
+        processes = processes.filter(p => !p.blacklisted);
+    }
+    
+    const tbody = document.getElementById('processTable');
+    tbody.innerHTML = '';
+    
+    if (processes.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No processes found</td></tr>';
+        return;
+    }
+    
+    processes.slice(0, 50).forEach(proc => {
+        const row = tbody.insertRow();
+        row.innerHTML = `
+            <td>${proc.pid}</td>
+            <td>${proc.name}</td>
+            <td>${proc.cpu_percent}%</td>
+            <td>${proc.memory_percent}%</td>
+            <td>
+                <span class="badge ${proc.blacklisted ? 'badge-blocked' : 'badge-allowed'}">
+                    ${proc.blacklisted ? '🚫 Blocked' : '✓ Allowed'}
+                </span>
+            </td>
+        `;
+    });
+}
+
+function filterProcesses(filter) {
+    currentFilter = filter;
+    
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    displayProcesses();
+}
+
+async function loadStats() {
+    try {
+        const response = await fetch('/api/stats');
+        const stats = await response.json();
+        
+        document.getElementById('totalSessions').textContent = stats.total_sessions;
+        document.getElementById('totalMinutes').textContent = stats.total_minutes;
+        document.getElementById('blockedCount').textContent = stats.processes_blocked;
+    } catch (error) {
+        console.error('Error loading stats:', error);
+    }
+}
+    </script>
+</body>
+</html>

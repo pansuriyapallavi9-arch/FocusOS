@@ -1,0 +1,9 @@
+chrome
+firefox
+steam
+discord
+spotify
+telegram
+slack
+teams
+msedge
