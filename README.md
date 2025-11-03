@@ -41,6 +41,22 @@ Focus OS is an operating system-level distraction management system demonstratin
 │  (Windows)           │
 └──────────────────────┘
 ```
+# 🎯 Focus OS - Operating System Project
+
+## 📸 Screenshots
+
+### Dashboard
+![Dashboard](screenshots/1.png)
+
+### Focus Mode Active
+![Active](screenshots/2.png)
+
+### Process Monitor
+![Processes](screenshots/3.png)
+
+---
+
+## Overview
 
 ## 📦 Installation
 
